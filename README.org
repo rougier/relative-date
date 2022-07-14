@@ -4,11 +4,11 @@
 This package allows to format the difference between two dates according to
 the value of their difference (expressed in seconds) or a symbolic
 relationship between the two dates (e.g. 'today). The main entry points for
-the library are the relative-date function and the relative-date-formats.
+the library are the =relative-date= function and the =relative-date-formats= variable.
 
 ** Usage
 
-You need first to define the `relative-date-formats variable and specify how to format a date difference according to the amount of seconds separating the two date. 
+You need first to define the =relative-date-formats= variable and specify how to format a date difference according to the amount of seconds separating the two dates. 
 
 #+begin_src emacs-lisp
 
@@ -24,7 +24,8 @@ You need first to define the `relative-date-formats variable and specify how to 
 
 #+end_src
 
-You can then use the 'relative-date to get the formatted difference as a string:
+You can then use the =relative-date= to get the formatted difference as a string.
+(we use an explicit =now= date in the example below but it is optional. When not given, current time is used).
 
 #+begin_src emacs-lisp
 
@@ -49,3 +50,5 @@ You can then use the 'relative-date to get the formatted difference as a string:
 ;; -> "Today 04:45"
 
 #+end_src
+
+Symbolic criteria are: =today=, =yesterday=, =this-week=, =last-week=, =this-month=, =last-month=, =this-year= & =last-year=.
