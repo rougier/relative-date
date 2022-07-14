@@ -205,13 +205,8 @@ A numerical criterion means that the date difference expressed in seconds has to
         (dolist (item relative-date-formats)
           (let ((value (car item))
                 (format (cdr item)))
-
-            (when (symbolp value)
-                (message "%s : value" (symbolp value) (cdr (assoc value symbols))))
-            
             (when (or (and (numberp value) (< delta value))
                       (and (symbolp value) (cdr (assoc value symbols))))
-
               (let* ((format (string-replace "%(M)" (format "%d" delta-minute) format))
                      (format (string-replace "%(H)" (format "%d" delta-hour) format))
                      (format (string-replace "%(d)" (format "%d" delta-day) format))
