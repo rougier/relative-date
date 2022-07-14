@@ -1,0 +1,4 @@
+This package allows to format the difference between two dates according to
+the value of their difference (expressed in seconds) or a symbolic
+relationship between the two dates (e.g. 'today). The main entry points for
+the library are the relative-date function and the relative-date-formats.
