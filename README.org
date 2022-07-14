@@ -65,7 +65,7 @@ Integration with [[https://github.com/djcb/mu][mu4e]] is straightforward
   (format "%12s" (relative-date (mu4e-message-field msg :date))))
 
 (add-to-list 'mu4e-header-info-custom
-             '(:relative-date . (:name "relative/date"
+             '(:relative-date . (:name "relative-date"
                                  :shortname "D"
                                  :function mu4e-headers-relative-date)))
 
