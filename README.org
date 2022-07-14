@@ -1,4 +1,51 @@
+
+* Relative date computation and formatting
+
 This package allows to format the difference between two dates according to
 the value of their difference (expressed in seconds) or a symbolic
 relationship between the two dates (e.g. 'today). The main entry points for
 the library are the relative-date function and the relative-date-formats.
+
+** Usage
+
+You need first to define the `relative-date-formats variable and specify how to format a date difference according to the amount of seconds separating the two date. 
+
+#+begin_src emacs-lisp
+
+(defcustom relative-date-formats
+  `( (,(*       3 60) . "now")              ;; Less than 3 minutes
+     (,(*      60 60) . "%(M) mins. ago")   ;; Less than 1 hour
+     (,(*    3 60 60) . "%(H) hours ago")   ;; Less than 3 hours
+     (today           . "Today %H:%M")      ;; Today
+     (yesterday       . "Yest. %H:%M")      ;; Yesterday
+     (this-week       . "%a. %H:%M")        ;; This week
+     (this-year       . "%B %d")            ;; This year
+     (t               . "%Y-%m-%d"))        ;; Default
+
+#+end_src
+
+You can then use the 'relative-date to get the formatted difference as a string:
+
+#+begin_src emacs-lisp
+
+(let ((now  (encode-time (parse-time-string "2022-07-14 8:00")))
+      (date (encode-time (parse-time-string "2022-07-14 7:59"))))
+  (relative-date date now))
+;; -> "now"
+
+(let ((now  (encode-time (parse-time-string "2022-07-14 8:00")))
+      (date (encode-time (parse-time-string "2022-07-14 7:45"))))
+  (relative-date date now))
+;; -> "15 mins. ago"
+
+(let ((now  (encode-time (parse-time-string "2022-07-14 8:00")))
+      (date (encode-time (parse-time-string "2022-07-14 6:05"))))
+  (relative-date date now))
+;; -> "2 hours ago"
+
+(let ((now  (encode-time (parse-time-string "2022-07-14 8:00")))
+      (date (encode-time (parse-time-string "2022-07-14 4:45"))))
+  (relative-date date now))
+;; -> "Today 04:45"
+
+#+end_src
