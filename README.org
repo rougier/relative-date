@@ -20,7 +20,7 @@ You need first to define the =relative-date-formats= variable and specify how to
      (yesterday       . "Yest. %H:%M")      ;; Yesterday
      (this-week       . "%a. %H:%M")        ;; This week
      (this-year       . "%B %d")            ;; This year
-     (t               . "%Y-%m-%d"))        ;; Default
+     (t               . "%Y-%m-%d")))       ;; Default
 
 #+end_src
 
