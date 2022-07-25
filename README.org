@@ -62,7 +62,7 @@ You can then use the =relative-date= to get the formatted difference as a string
 
 #+end_src
 
-Symbolic criteria are: =today=, =yesterday=, =this-week=, =last-week=, =this-month=, =last-month=, =this-year= & =last-year=.
+Symbolic criteria are: =yesterday,= =today=, =tomorrow=, =last-week=, =this-week=, =next-week=, =last-month=, =this-month=, =next-month=, =last-year, =this-year= & =next-year=.
 
 ** Mu4e integration
 
