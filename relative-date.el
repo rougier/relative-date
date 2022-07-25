@@ -5,7 +5,7 @@
 ;; Author: Nicolas P. Rougier <Nicolas.Rougier@inria.fr>
 ;; Homepage: https://github.com/rougier/relative-date
 ;; Keywords: convenience
-;; Version: 0.1
+;; Version: 0.2
 
 ;; Package-Requires: ((emacs "27.1"))
 
@@ -39,11 +39,13 @@
 
 ;;; Code
 (defcustom relative-date-formats
-  `( (,(*       3 60) . "now")              ;; Less than 3 minutes
+  `( (,(*       3 60) . "now")              ;; Less than 3 minutes (past)
+     (,(- (*   3 60)) . "soon")             ;; Less than 3 minutes (future)
      (,(*      60 60) . "%(M) mins. ago")   ;; Less than 1 hour
      (,(*    3 60 60) . "%(H) hours ago")   ;; Less than 3 hours
      (today           . "Today %H:%M")      ;; Today
      (yesterday       . "Yest. %H:%M")      ;; Yesterday
+     (tomorrow        . "Tom. %H:%M")       ;; Tomorrow
      (this-week       . "%a. %H:%M")        ;; This week
      (this-year       . "%B %d")            ;; This year
      (t               . "%Y-%m-%d"))       ;; Default
@@ -54,14 +56,18 @@ A numerical criterion means that the date difference expressed in seconds has to
   :type '(repeat (cons (radio :tag "Criterion"
                                (number :tag "Numerical (seconds)")
                                (choice :tag "Symbolic"
-                                       (const today)
                                        (const yesterday)
-                                       (const this-week)
+                                       (const today)
+                                       (const tomorrow)
                                        (const last-week)
-                                       (const this-month)
+                                       (const this-week)
+                                       (const next-week)
                                        (const last-month)
+                                       (const this-month)
+                                       (const next-month)
+                                       (const last-year)
                                        (const this-year)
-                                       (const last-year))
+                                       (const next-year))
                                (boolean :tag "Default"))
                      (string :tag "Format"))))
   
@@ -127,6 +133,12 @@ A numerical criterion means that the date difference expressed in seconds has to
   (let ((now (or now (current-time))))
     (relative-date-equal (relative-date-dec (relative-date-today now) 1) date)))
 
+(defun relative-date-is-tomorrow (date &optional now)
+  "Check if DATE is tomorrow."
+
+  (let ((now (or now (current-time))))
+    (relative-date-equal (relative-date-inc (relative-date-today now) 1) date)))
+
 (defun relative-date-is-this-week (date &optional now)
   "Check if DATE corresponds to current week (week starts on Monday)"
 
@@ -135,7 +147,7 @@ A numerical criterion means that the date difference expressed in seconds has to
          (delta (ceiling (/ delta (*   24 60 60))))
          (week (mod (string-to-number (format-time-string "%W" date)) 52))
          (this-week (mod (string-to-number (format-time-string "%W" now)) 52)))
-    (and (< delta 7) (= week this-week))))
+    (and (>= delta 0) (< delta 7) (= week this-week))))
 
 (defun relative-date-is-last-week (date &optional now)
   "Check if date corresponds to last week (week starts on Monday)"
@@ -145,7 +157,17 @@ A numerical criterion means that the date difference expressed in seconds has to
          (delta (ceiling (/ delta (*   24 60 60))))
          (week (mod (string-to-number (format-time-string "%W" date)) 52))
          (last-week (mod (- (string-to-number (format-time-string "%W" now)) 1) 52)))
-    (and (< delta 14) (= week last-week))))
+    (and (>= delta 0) (< delta 14) (= week last-week))))
+
+(defun relative-date-is-next-week (date &optional now)
+  "Check if date corresponds to last week (week starts on Monday)"
+
+  (let* ((now (or now (current-time)))
+         (delta (float-time (time-subtract now date)))
+         (delta (ceiling (/ delta (*   24 60 60))))
+         (week (mod (string-to-number (format-time-string "%W" date)) 52))
+         (next-week (mod (+ (string-to-number (format-time-string "%W" now)) 1) 52)))
+    (and (>= delta 0) (< (abs delta) 14) (= week next-week))))
 
 (defun relative-date-is-this-month (date &optional now)
   "Check if DATE corresponds to current month"
@@ -167,6 +189,19 @@ A numerical criterion means that the date difference expressed in seconds has to
           (= (relative-date-month date) 12)
           (= (relative-date-month now) 1)))))
 
+(defun relative-date-is-next-month (date &optional now)
+  "Check if DATE corresponds to last month"
+
+  (let* ((now (or now (current-time))))
+    (or
+     ;; Same year
+     (and (= (relative-date-year date) (relative-date-year now))
+          (= (relative-date-month date) (+ (relative-date-month now) 1)))
+     ;; Next year
+     (and (= (relative-date-year date) (+ (relative-date-year now) 1) )
+          (= (relative-date-month date) 1)
+          (= (relative-date-month now) 12)))))
+
 (defun relative-date-is-this-year (date &optional now)
   "Check if DATE corresponds to current year."
 
@@ -178,6 +213,12 @@ A numerical criterion means that the date difference expressed in seconds has to
 
   (let* ((now (or now (current-time))))
     (= (relative-date-year date) (- (relative-date-year now) 1))))
+
+(defun relative-date-is-next-year (date &optional now)
+  "Check if DATE corresponds to next year."
+
+  (let* ((now (or now (current-time))))
+    (= (relative-date-year date) (+ (relative-date-year now) 1))))
 
 (defun relative-date (date &optional now)
   "Return the relative difference between DATE and NOW according to RELATIVE-DATE-FORMATS."
@@ -193,19 +234,25 @@ A numerical criterion means that the date difference expressed in seconds has to
          (delta-year   (- (relative-date-year now)  (relative-date-year date)))
          (symbols `((today      . ,(relative-date-is-today date now))
                     (yesterday  . ,(relative-date-is-yesterday date now))
-                    (this-week  . ,(relative-date-is-this-week date now))
+                    (tomorrow   . ,(relative-date-is-tomorrow date now))
                     (last-week  . ,(relative-date-is-last-week date now))
-                    (this-month . ,(relative-date-is-this-month date now))
+                    (this-week  . ,(relative-date-is-this-week date now))
+                    (next-week  . ,(relative-date-is-next-week date now))
                     (last-month . ,(relative-date-is-last-month date now))
+                    (this-month . ,(relative-date-is-this-month date now))
+                    (next-month . ,(relative-date-is-next-month date now))
+                    (last-year  . ,(relative-date-is-last-year date now))
                     (this-year  . ,(relative-date-is-this-year date now))
-                    (last-year  . ,(relative-date-is-last-year date now))))
+                    (next-year  . ,(relative-date-is-this-year date now))))
          (result (format-time-string "%Y-%m-%d" date)))
     
       (catch 'found
         (dolist (item relative-date-formats)
           (let ((value (car item))
                 (format (cdr item)))
-            (when (or (and (numberp value) (< delta value))
+            (message "%s %s" delta value)
+            (when (or (and (numberp value) (>= value 0) (>= delta 0) (< delta value))
+                      (and (numberp value) (<= value 0) (<= delta 0) (< value delta))
                       (and (symbolp value) (cdr (assoc value symbols))))
               (let* ((format (string-replace "%(M)" (format "%d" delta-minute) format))
                      (format (string-replace "%(H)" (format "%d" delta-hour) format))
@@ -216,7 +263,6 @@ A numerical criterion means that the date difference expressed in seconds has to
                 (setq result (format-time-string format date)))
               (throw 'found result)))))
       result))
-
 
 
 (provide 'relative-date)
