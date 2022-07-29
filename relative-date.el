@@ -5,7 +5,7 @@
 ;; Author: Nicolas P. Rougier <Nicolas.Rougier@inria.fr>
 ;; Homepage: https://github.com/rougier/relative-date
 ;; Keywords: convenience
-;; Version: 0.2
+;; Version: 0.2.1
 
 ;; Package-Requires: ((emacs "27.1"))
 
@@ -250,7 +250,6 @@ A numerical criterion means that the date difference expressed in seconds has to
         (dolist (item relative-date-formats)
           (let ((value (car item))
                 (format (cdr item)))
-            (message "%s %s" delta value)
             (when (or (and (numberp value) (>= value 0) (>= delta 0) (< delta value))
                       (and (numberp value) (<= value 0) (<= delta 0) (< value delta))
                       (and (symbolp value) (cdr (assoc value symbols))))
