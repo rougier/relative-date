@@ -114,7 +114,7 @@ Showing relative dates in [[https://github.com/skeeto/elfeed][elfeed]] is a bit 
               (concat pad string))))
          (string)))))
 
-  (advice-add 'elfeed-search-format-date :override my/elfeed-search-format-date)
+  (advice-add 'elfeed-search-format-date :override #'my/elfeed-search-format-date)
 #+end_src
 
 Moreover, it's suggested to reconfigure =relative-date-formats= to show strings up to 4 characters:
