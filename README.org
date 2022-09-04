@@ -92,7 +92,7 @@ Integration with [[https://github.com/djcb/mu][mu4e]] is straightforward
 
 *** Elfeed integration
 
-Showing relative dates in elfeed is a bit more involved, you have to reimplement the function =elfeed-search-format-date= such that it calls the relative-date library. An implementation is shown below, overriding the original with an advice. It comes with a search date format with a dummy format (and specifies width and alignment).
+Showing relative dates in [[https://github.com/skeeto/elfeed][elfeed]] is a bit more involved, you have to reimplement the function =elfeed-search-format-date= such that it calls the relative-date library. An implementation is shown below, overriding the original with an advice. It comes with a search date format with a dummy format (and specifies width and alignment).
 
 #+begin_src elisp
   (setq elfeed-search-date-format '("rel" 4 :right))
