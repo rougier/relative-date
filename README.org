@@ -64,7 +64,8 @@ You can then use the =relative-date= to get the formatted difference as a string
 
 Symbolic criteria are: =yesterday,= =today=, =tomorrow=, =last-week=, =this-week=, =next-week=, =last-month=, =this-month=, =next-month=, =last-year, =this-year= & =next-year=.
 
-** Mu4e integration
+** Integrations
+*** Mu4e integration
 
 Integration with [[https://github.com/djcb/mu][mu4e]] is straightforward
 
@@ -87,4 +88,49 @@ Integration with [[https://github.com/djcb/mu][mu4e]] is straightforward
   (:from . 22)
   (:subject)))
 
+#+end_src
+
+*** Elfeed integration
+
+Showing relative dates in elfeed is a bit more involved, you have to reimplement the function =elfeed-search-format-date= such that it calls the relative-date library. An implementation is shown below, overriding the original with an advice. It comes with a search date format with a dummy format (and specifies width and alignment).
+
+Moreover, it's suggested to reconfigure =relative-date-formats= to show strings up to 4 characters.
+
+#+begin_src elisp
+  ;; Suggested configuration for relative dates up to 4 characters.
+  (setq relative-date-formats
+          `( (,(*       3 60)       . "now")     ; Less than 3 minutes (past)
+             (,(- (*   3 60))       . "soon")    ; Less than 3 minutes (future)
+             (,(*      60 60)       . "%(M)m")   ; Less than 1 hour
+             (,(- (*   60 60))      . "+%(M)m")  ; Less than 1 hour in the future
+             (,(*   24 60 60)       . "%(H)h")   ; Less than 24 hours
+             (,(- (*   24 60 60))   . "+%(H)h")  ; Less than 24 hours in the future
+             (,(* 7 24 60 60)       . "%(d)d")   ; Less than 7 days
+             (,(- (* 7 24 60 60))   . "+%(d)d")  ; Less than 7 days in the future
+             (,(* 30 24 60 60)      . "%(w)w")   ; Less than 30 days
+             (,(- (* 30 24 60 60))  . "+%(w)w")  ; Less than 30 days in the future
+             (,(* 365 24 60 60)     . "%(m)mo")  ; Less than a year
+             (,(- (* 365 24 60 60)) . "+%(m)mo") ; Less than a year in the future
+             (t                     . "%(y)y"))) ; Default
+
+  (setq elfeed-search-date-format '("rel" 4 :right))
+
+  (defun my/elfeed-search-format-date (date)
+    "Format a date for printing in `elfeed-search-mode' using relative dates."
+    (cl-destructuring-bind (format target alignment) elfeed-search-date-format
+      (let* ((string (relative-date (seconds-to-time date)))
+             (width (string-width string)))
+        (cond
+         ((> width target)
+          (if (eq alignment :left)
+              (substring string 0 target)
+            (substring string (- width target) width)))
+         ((< width target)
+          (let ((pad (make-string (- target width) ?\s)))
+            (if (eq alignment :left)
+                (concat string pad)
+              (concat pad string))))
+         (string)))))
+
+  (advice-add 'elfeed-search-format-date :override my/elfeed-search-format-date)
 #+end_src
